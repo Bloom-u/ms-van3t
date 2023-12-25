@@ -242,8 +242,6 @@ main (int argc, char *argv[])
     {
       prrSup = &prrSupObj;
       prrSup->setTraCIClient(sumoClient);
-      // Uncomment this to enable verbose output from the PRRsupervisor, printing latency and PRR for each single packet
-      // prrSup->enableVerboseOnStdout();
     }
 
   /*** 7. Setup interface and application for dynamic nodes ***/
@@ -327,13 +325,6 @@ main (int argc, char *argv[])
           std::cout << "Average latency of vehicle " << i << " (ms): " << prrSup->getAverageLatency_vehicle (i) << std::endl;
           std::cout << "Average PRR of vehicle " << i << " (%): " << prrSup->getAveragePRR_vehicle (i) << std::endl;
       }
-
-      std::cout << "Average latency of CAMs (ms): " << prrSup->getAverageLatency_messagetype (PRRSupervisor::messageType_cam) << std::endl;
-      std::cout << "Average PRR of CAMs (%): " << prrSup->getAveragePRR_messagetype (PRRSupervisor::messageType_cam) << std::endl;
-      std::cout << "Average latency of DENMSs (ms): " << prrSup->getAverageLatency_messagetype (PRRSupervisor::messageType_denm) << std::endl;
-      std::cout << "Average PRR of DENMSs (%): " << prrSup->getAveragePRR_messagetype (PRRSupervisor::messageType_denm) << std::endl;
-      std::cout << "Average latency of CPMs (ms): " << prrSup->getAverageLatency_messagetype (PRRSupervisor::messageType_cpm) << std::endl;
-      std::cout << "Average PRR of CPMs (%): " << prrSup->getAveragePRR_messagetype (PRRSupervisor::messageType_cpm) << std::endl;
     }
 
 

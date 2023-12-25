@@ -262,17 +262,8 @@ namespace ns3
     /* Schedule CAM dissemination */
     if(m_send_cam == true)
     {
-      // Old desync code kept just for reference
-      // It may lead to nodes not being desynchronized properly in specific situations in which
-      // Simulator::Now().GetNanoSeconds () returns the same seed for multiple nodes
-      // std::srand(Simulator::Now().GetNanoSeconds ());
-      // double desync = ((double)std::rand()/RAND_MAX);
-
-      Ptr<UniformRandomVariable> desync_rvar = CreateObject<UniformRandomVariable> ();
-      desync_rvar->SetAttribute ("Min", DoubleValue (0.0));
-      desync_rvar->SetAttribute ("Max", DoubleValue (1.0));
-      double desync = desync_rvar->GetValue ();
-
+      std::srand(Simulator::Now().GetNanoSeconds ());
+      double desync = ((double)std::rand()/RAND_MAX);
       m_caService.startCamDissemination(desync);
     }
 
@@ -304,8 +295,6 @@ namespace ns3
     cam_sent = m_caService.terminateDissemination ();
     cpm_sent = m_cpService.terminateDissemination ();
     m_denService.cleanup();
-    m_LDM->cleanup();
-    m_sensor->cleanup();
 
     if (m_print_summary && !m_already_print)
     {
@@ -313,7 +302,7 @@ namespace ns3
                 << ",CAM-SENT:" << cam_sent
                 << ",CAM-RECEIVED:" << m_cam_received
                 << ",CPM-SENT: " << cpm_sent
-                << ",CPM-RECEIVED: " << m_cpm_received
+                << ",CPM-RECEIVED" << m_cpm_received
                 << std::endl;
       m_already_print=true;
     }

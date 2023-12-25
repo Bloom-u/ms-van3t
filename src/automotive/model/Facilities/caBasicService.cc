@@ -293,7 +293,10 @@ namespace ns3
   CABasicService::initDissemination()
   {
     generateAndEncodeCam();
-    m_event_camCheckConditions = Simulator::Schedule (MilliSeconds(m_T_CheckCamGen_ms), &CABasicService::checkCamConditions, this);
+    VDP::VDP_position_latlon_t now_pos = m_vdp->getPosition();
+    std::cout << "CAM sent at (" << now_pos.lat << " " << now_pos.lon << ")" <<std::endl;
+    // m_event_camCheckConditions = Simulator::Schedule (MilliSeconds(m_T_CheckCamGen_ms), &CABasicService::checkCamConditions, this);
+    m_event_camCheckConditions = Simulator::Schedule (MilliSeconds(m_T_CheckCamGen_ms), &CABasicService::resendCam, this);
   }
 
   void
@@ -303,6 +306,25 @@ namespace ns3
     m_event_camRsuDissemination = Simulator::Schedule (MilliSeconds(m_RSU_GenCam_ms), &CABasicService::RSUDissemination, this);
   }
 
+  void
+  CABasicService::resendCam()
+  {
+    VDP::VDP_position_latlon_t now_pos = m_vdp->getPosition();
+    std::cout << "CAM sent at (" << now_pos.lat << " " << now_pos.lon << ")" <<std::endl;
+    CABasicService_error_t cam_error;
+    bool condition_verified=false;
+    static bool dyn_cond_verified=false;
+    cam_error=generateAndEncodeCam ();
+    if(cam_error==CAM_NO_ERROR)
+      {
+        m_N_GenCam=0;
+        condition_verified=true;
+        dyn_cond_verified=true;
+      } else {
+        NS_LOG_ERROR("Cannot generate CAM. Error code: "<<cam_error);
+      }
+    m_event_camCheckConditions = Simulator::Schedule (MilliSeconds(m_T_CheckCamGen_ms), &CABasicService::resendCam, this);
+  }
   void
   CABasicService::checkCamConditions()
   {
@@ -427,7 +449,7 @@ namespace ns3
       }
 
     /* Fill the header */
-    asn1cpp::setField(cam->header.messageID, FIX_CAMID);
+    asn1cpp::setField(cam->header.messageID, FIX_CAMID); //
     asn1cpp::setField(cam->header.protocolVersion , protocolVersion_currentVersion);
     asn1cpp::setField(cam->header.stationID, m_station_id);
 
@@ -450,8 +472,10 @@ namespace ns3
         /* Fill the basicContainer */
         asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.altitude.altitudeValue, cam_mandatory_data.altitude.getValue ());
         asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.altitude.altitudeConfidence, cam_mandatory_data.altitude.getConfidence ());
-        asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.latitude, cam_mandatory_data.latitude);
-        asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.longitude, cam_mandatory_data.longitude);
+        // asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.latitude, cam_mandatory_data.latitude); //450539080
+        // asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.longitude, cam_mandatory_data.longitude); //76553820
+        // asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.latitude, 450539080); 
+        // asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.longitude, 76553820); 
         asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.positionConfidenceEllipse.semiMajorConfidence, cam_mandatory_data.posConfidenceEllipse.semiMajorConfidence);
         asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.positionConfidenceEllipse.semiMinorConfidence, cam_mandatory_data.posConfidenceEllipse.semiMinorConfidence);
         asn1cpp::setField(cam->cam.camParameters.basicContainer.referencePosition.positionConfidenceEllipse.semiMajorOrientation, cam_mandatory_data.posConfidenceEllipse.semiMajorOrientation);
@@ -461,13 +485,13 @@ namespace ns3
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.present, HighFrequencyContainer_PR_basicVehicleContainerHighFrequency);
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.heading.headingValue, cam_mandatory_data.heading.getValue ());
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.heading.headingConfidence, cam_mandatory_data.heading.getConfidence ());
-        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.speed.speedValue, cam_mandatory_data.speed.getValue ());
+        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.speed.speedValue, cam_mandatory_data.speed.getValue ()); 
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.speed.speedConfidence, cam_mandatory_data.speed.getConfidence ());
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.driveDirection, cam_mandatory_data.driveDirection);
-        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.vehicleLength.vehicleLengthValue, cam_mandatory_data.VehicleLength.getValue());
+        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.vehicleLength.vehicleLengthValue, cam_mandatory_data.VehicleLength.getValue()); 
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.vehicleLength.vehicleLengthConfidenceIndication, cam_mandatory_data.VehicleLength.getConfidence());
-        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.vehicleWidth, cam_mandatory_data.VehicleWidth);
-        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.longitudinalAcceleration.longitudinalAccelerationValue, cam_mandatory_data.longAcceleration.getValue ());
+        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.vehicleWidth, cam_mandatory_data.VehicleWidth); 
+        asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.longitudinalAcceleration.longitudinalAccelerationValue, cam_mandatory_data.longAcceleration.getValue ()); 
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.longitudinalAcceleration.longitudinalAccelerationConfidence, cam_mandatory_data.longAcceleration.getConfidence ());
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.curvature.curvatureValue, cam_mandatory_data.curvature.getValue ());
         asn1cpp::setField(cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency.curvature.curvatureConfidence, cam_mandatory_data.curvature.getConfidence ());
@@ -526,9 +550,12 @@ namespace ns3
         }
 
         // Store all the "previous" values used in checkCamConditions()
-        m_prev_distance=m_vdp->getTravelledDistance ();
-        m_prev_speed=m_vdp->getSpeedValue ();
-        m_prev_heading=m_vdp->getHeadingValue ();
+        m_prev_distance=m_vdp->getTravelledDistance (); //0.38
+        m_prev_speed=m_vdp->getSpeedValue (); //1.65
+        m_prev_heading=m_vdp->getHeadingValue (); //180
+        // m_prev_distance=0.38;
+        // m_prev_speed=1.65;
+        // m_prev_heading=180;
 
       }
    else
@@ -791,7 +818,6 @@ namespace ns3
 
         asn1cpp::setField(cam->cam.camParameters.specialVehicleContainer,specialVehicleCont);
     }
-
     std::string encode_result = asn1cpp::uper::encode(cam);
 
     if(encode_result.size()<1)

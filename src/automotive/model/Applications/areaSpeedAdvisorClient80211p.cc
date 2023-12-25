@@ -177,7 +177,7 @@ namespace ns3
       m_csv_ofstream.open (m_csv_name+"-"+m_id+".csv",std::ofstream::trunc);
       m_csv_ofstream << "messageID,originatingStationID,sequence,referenceTime,detectionTime,stationID" << std::endl;
     }
-
+    
     /* Schedule CAM dissemination */
     if(m_send_cam == true)
     {

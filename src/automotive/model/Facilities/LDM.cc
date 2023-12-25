@@ -80,7 +80,6 @@ namespace ns3 {
 
   LDM::~LDM() {
       Simulator::Cancel(m_event_deleteOlderThan);
-      Simulator::Cancel(m_event_writeContents);
       clear();
   }
 
@@ -375,12 +374,6 @@ namespace ns3 {
                << maxDist << ","
                << std::endl;
     m_event_writeContents = Simulator::Schedule(MilliSeconds(LOG_FREQ),&LDM::writeAllContents,this);
-  }
-
-  void
-  LDM::cleanup()
-  {
-    Simulator::Cancel(m_event_writeContents);
   }
 
   void

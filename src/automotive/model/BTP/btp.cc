@@ -67,7 +67,6 @@ namespace ns3
     GNDataRequest_t GnDataRequest = {};
     btpHeader header;
     header.SetDestinationPort (dataRequest.destPort);
-    GnDataRequest._messagePort = dataRequest.destPort;
 
     if(dataRequest.BTPType==BTP_A) // BTP-A
     {

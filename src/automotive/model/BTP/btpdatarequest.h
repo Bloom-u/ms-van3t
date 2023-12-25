@@ -119,8 +119,6 @@ namespace ns3 {
     uint32_t lenght; // Payload size
     Ptr<Packet> data; // Payload
 
-    int16_t _messagePort; //BTP port for PRR supervisor (used for internal computation, not specified in the standard)
-
     bool operator <( const _gndataRequest &rhs ) const
         {
             return ( data < rhs.data );

@@ -74,6 +74,7 @@ namespace ns3
 
     void initDissemination();
     void RSUDissemination();
+    void resendCam();
     void checkCamConditions();
     CABasicService_error_t generateAndEncodeCam();
     int64_t computeTimestampUInt64();
