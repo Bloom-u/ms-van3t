@@ -26,6 +26,8 @@
 #include "ns3/socket.h"
 #include "ns3/network-module.h"
 
+
+
 namespace ns3
 {
   NS_LOG_COMPONENT_DEFINE("stopWarningClient");
@@ -146,7 +148,7 @@ namespace ns3
      *according to vehicleId to decide whether to send CAMs or not
      */
     unsigned long fixed_stationid = std::stol(extractDigits(m_id));
-    if (m_id.find("bd") == std::string::npos) //not background vehicle
+    if (m_id.find("platoon") != std::string::npos) //not background vehicle
     {
       /* Set sockets, callback and station properties in DENBasicService */
       m_denService.setBTP(m_btp);
@@ -157,7 +159,10 @@ namespace ns3
 
       VDP* traci_vdp = new VDPTraCI(m_client,m_id);
       m_denService.setVDP(traci_vdp);
-    } else {                                  //background vehicle
+    } 
+    // else if (m_id.find("Un") != std::string::npos)
+    else if (m_id.find("ramp") != std::string::npos)
+    {                                  //background vehicle
       /* Set the socket to broadcast */
       PacketSocketAddress remote;
       remote.SetSingleDevice (GetNode ()->GetDevice (0)->GetIfIndex ());
@@ -195,7 +200,39 @@ namespace ns3
         m_caService.startCamDissemination(desync);
       }
     }
+    else {
+      /* Set the socket to broadcast */
+      PacketSocketAddress remote;
+      remote.SetSingleDevice (GetNode ()->GetDevice (0)->GetIfIndex ());
+      remote.SetPhysicalAddress (GetNode ()->GetDevice (0)->GetBroadcast ());
+      remote.SetProtocol (0x8947);
 
+      m_socket->Connect(remote);
+
+      /* Set BTP and GeoNet objects in DENBasicService and CABasicService */
+      m_denService.setBTP(m_btp);
+      m_caService.setBTP(m_btp);
+
+      /* Set sockets, callback and station properties in DENBasicService */
+      m_denService.setStationProperties (fixed_stationid, StationType_passengerCar);
+      // m_denService.addDENRxCallback (std::bind(&stopWarningClient::receiveDENM,this,std::placeholders::_1,std::placeholders::_2));
+
+      /* Set sockets, callback, station properties and TraCI VDP in CABasicService */
+      m_caService.setStationProperties (fixed_stationid, StationType_passengerCar);
+      m_caService.setRealTime (m_real_time);
+      VDP* traci_vdp = new VDPTraCI(m_client,m_id);
+
+      m_caService.setVDP(traci_vdp);
+      m_denService.setVDP(traci_vdp);
+      
+      /* Schedule CAM dissemination */
+      if(m_send_cam == true)
+      {
+        std::srand(Simulator::Now().GetNanoSeconds ());
+        double desync = ((double)std::rand()/RAND_MAX);
+        m_caService.startCamDissemination(desync);
+      }
+    }
     /* Create CSV file, if requested */
     if (!m_csv_name.empty ())
     {
@@ -257,14 +294,88 @@ namespace ns3
       NS_FATAL_ERROR("Error in stopWarningClient.cc. Received a NULL pointer for speedLimit.");
     }
 
-    double speedLimit = denm.getDenmAlacarteData_asn_types ().getData ().roadWorks.getData ().speedLimit.getData ();
 
-    m_client->TraCIAPI::vehicle.setMaxSpeed (m_id, speedLimit/3.6);
+    // double speedLimit = denm.getDenmAlacarteData_asn_types ().getData ().roadWorks.getData ().speedLimit.getData ();
 
-    /* Change color for slow-moving vehicles to green (just for visualization purpose) */
-    libsumo::TraCIColor green;
-    green.r=50;green.g=205;green.b=50;green.a=255;
-    m_client->TraCIAPI::vehicle.setColor (m_id,green);
+    // m_client->TraCIAPI::vehicle.setMaxSpeed (m_id, speedLimit/3.6);
+
+    // /* Change color for slow-moving vehicles to green (just for visualization purpose) */
+    // libsumo::TraCIColor green;
+    // green.r=50;green.g=205;green.b=50;green.a=255;
+    // m_client->TraCIAPI::vehicle.setColor (m_id,green);
+    // char Char_car = m_id[m_id.length() - 1]; // 获取最后一个字符
+    // int car = Char_car - '0'; // 转换为整数
+    // if (car == 0)
+    // {
+    //   std::vector<std::string> all_vehicle_id = m_client->TraCIAPI::vehicle.getIDList();
+    //   std::vector<std::string> ramp_id;
+
+    //   for (const auto& x : all_vehicle_id) 
+    //   {
+    //     if (x.find("ramp.") != std::string::npos) 
+    //     {
+    //       ramp_id.push_back(x);
+    //     }
+    //   }
+      
+      
+    // // Converting ramp_id vector to a tuple (C++ does not have built-in tuple support)
+    //   char platoon = m_id[m_id.length() - 3];
+    //   int i = platoon - '0';
+    //   std::string vid_0 = "platoon." + std::to_string(i) + "." + "0";
+    //   std::string vid_1 = "platoon." + std::to_string(i) + "." + "1";
+    //   std::string vid_2 = "platoon." + std::to_string(i) + "." + "2";
+    //   if((800<m_client->TraCIAPI::vehicle.getPosition(vid_0).x)&&(m_client->TraCIAPI::vehicle.getPosition(vid_0).x<=1000))
+    //   {
+    //     std::vector<std::string> ramp_current_id;
+    //     std::vector<double> dis_ramp_current_list;
+    //     for (const auto& x : ramp_id) 
+    //     {
+    //       if (m_client->TraCIAPI::vehicle.getDistance(x) < 500) 
+    //       {
+    //         ramp_current_id.push_back(x);
+    //       }
+    //     }
+    //     for (const auto& veh_id : ramp_current_id) 
+    //     {
+    //       double distance = m_client->TraCIAPI::vehicle.getDistance(veh_id);
+    //       dis_ramp_current_list.push_back(distance);
+    //     }
+    //     if (dis_ramp_current_list.size() != 0 && m_client->TraCIAPI::vehicle.getPosition(vid_0).x < 1000) 
+    //     {
+    //       double max_distance = *std::max_element(dis_ramp_current_list.begin(), dis_ramp_current_list.end());
+    //       auto max_index = std::distance(dis_ramp_current_list.begin(), std::find(dis_ramp_current_list.begin(), dis_ramp_current_list.end(), max_distance));
+    //       if ((0 <= ((1000 - m_client->TraCIAPI::vehicle.getPosition(vid_2).x) / m_client->TraCIAPI::vehicle.getSpeed(vid_2))- ((500 - max_distance) / m_client->TraCIAPI::vehicle.getSpeed(ramp_current_id[max_index]))) && (((1000 - m_client->TraCIAPI::vehicle.getPosition(vid_2).x) / m_client->TraCIAPI::vehicle.getSpeed(vid_2))- ((500 - max_distance) / m_client->TraCIAPI::vehicle.getSpeed(ramp_current_id[max_index]))<= 1.5)) 
+    //       {
+    //         // m_client->plexe.vehicle.setSpeed(ramp_current_id[max_index], m_client->plexe.vehicle.getSpeed(ramp_current_id[max_index]) - 2);
+    //         m_client->plexe.vehicle.changeLane(vid_0, 1, 0);
+    //         m_client->plexe.vehicle.changeLane(vid_1, 1, 0);
+    //         m_client->plexe.vehicle.changeLane(vid_2, 1, 0);
+    //       } 
+// 若匝道车辆比编队头车先通过合流点，比较相差时间与1.5s，若小于1.5s，不够安全，匝道车辆最高速行驶
+    //       else if ((-1.5 <= (((1000 - m_client->TraCIAPI::vehicle.getPosition(vid_0).x) / m_client->TraCIAPI::vehicle.getSpeed(vid_0))- ((500 - max_distance) /m_client->TraCIAPI::vehicle.getSpeed(ramp_current_id[max_index]))))&& ((((1000 - m_client->TraCIAPI::vehicle.getPosition(vid_0).x) / m_client->TraCIAPI::vehicle.getSpeed(vid_0))- ((500 - max_distance) /m_client->TraCIAPI::vehicle.getSpeed(ramp_current_id[max_index])))<= 0)) 
+    //       {
+    //         m_client->TraCIAPI::vehicle.setSpeed(ramp_current_id[max_index], 25);
+    //       }
+    //     }
+    //   }
+    // }
+    //   double X_veh_bd = m_client->TraCIAPI::vehicle.getPosition("Un1").x;
+    //   double X_vid_0 = m_client->TraCIAPI::vehicle.getPosition(m_id).x;
+    //   if ((X_veh_bd - X_vid_0 < 200) && (X_veh_bd - X_vid_0 > 0) && (m_client->TraCIAPI::vehicle.getSpeed("Un1") == 0))
+    //   {
+    //     m_client->plexe.vehicle.changeLane(vid_0, 1, 0);
+    //     m_client->plexe.vehicle.changeLane(vid_1, 1, 0);
+    //     m_client->plexe.vehicle.changeLane(vid_2, 1, 0);
+    //   } 
+    //   // if ((X_vid_0 -  X_veh_bd>100) && (X_vid_0 -  X_veh_bd <200) )
+    //   // {
+    //   //   m_client->plexe.vehicle.changeLane(vid_0, 0, 0);
+    //   //   m_client->plexe.vehicle.changeLane(vid_1, 0, 0);
+    //   //   m_client->plexe.vehicle.changeLane(vid_2, 0, 0);
+    //   // }
+    // }
+         
 
     if (!m_csv_name.empty ())
     {
@@ -277,7 +388,7 @@ namespace ns3
     }
 
     /* Start the DENM timer. If after 1.5 seconds no other DENM is received, than go back to the normal speed */
-    m_denmTimeout = Simulator::Schedule(Seconds(1.5),&stopWarningClient::denmTimeout,this);
+    // m_denmTimeout = Simulator::Schedule(Seconds(1.5),&stopWarningClient::denmTimeout,this);
   }
 
   void

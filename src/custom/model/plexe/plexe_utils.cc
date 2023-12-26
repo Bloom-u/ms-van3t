@@ -15,15 +15,15 @@ namespace ns3{
             plexe.set_fixed_lane(vid, 0, false);
             plexe.vehicle.setSpeedMode(vid, 0);
             
-            // if (i == 0){
-            //     leaderID = vid;
-            //     plexe.set_active_controller(vid, 0);
-            //     plexe.enable_auto_lane_changing(leaderID, true);
-            // } else {
-            //     plexe.set_active_controller(vid, CACC);
-            //     plexe.enable_auto_feed(vid, true, leaderID, "platoon." + std::to_string(platoonID) + "." + std::to_string(i - 1));
-            //     plexe.add_member(leaderID, vid, i);
-            // }
+            if (i == 0){
+                leaderID = vid;
+                plexe.set_active_controller(vid, 0);
+                plexe.enable_auto_lane_changing(leaderID, true);
+            } else {
+                plexe.set_active_controller(vid, CACC);
+                plexe.enable_auto_feed(vid, true, leaderID, "platoon." + std::to_string(platoonID) + "." + std::to_string(i - 1));
+                plexe.add_member(leaderID, vid, i);
+            }
         }
     }
 

@@ -128,8 +128,8 @@ namespace ns3
     // Longitude and Latitude in [0.1 microdegree]
     // geoArea.posLong = map_center.x*DOT_ONE_MICRO;
     // geoArea.posLat = map_center.y*DOT_ONE_MICRO;
-    geoArea.posLong = 500;
-    geoArea.posLat = 500;
+    geoArea.posLong = 300;
+    geoArea.posLat = 300;
     // Radius [m] of the circle that covers the whole square area of the map in (x,y)
     geoArea.distA = 1000;
     // DistB [m] and angle [deg] equal to zero because we are defining a circular area as specified in ETSI EN 302 636-4-1 [9.8.5.2]
@@ -192,12 +192,12 @@ namespace ns3
     // As the position must be specified in (lat, lon), we must take it from the mobility model and then convert it to Latitude and Longitude
     // As SUMO is used here, we can rely on the TraCIAPI for this conversion
     Ptr<MobilityModel> mob = GetNode ()->GetObject<MobilityModel>();
-    mob->SetPosition (Vector (1000, 1000, 0));
+    mob->SetPosition (Vector (1000, 300, 0));
     libsumo::TraCIPosition rsuPos = m_client->TraCIAPI::simulation.convertXYtoLonLat (mob->GetPosition ().x,mob->GetPosition ().y);;
     // m_denService.setFixedPositionRSU (rsuPos.y,rsuPos.x);
     // m_caService.setFixedPositionRSU (rsuPos.y,rsuPos.x);
-    m_denService.setFixedPositionRSU (1000, 1000);
-    m_caService.setFixedPositionRSU (1000, 1000);
+    m_denService.setFixedPositionRSU (1000, 300);
+    m_caService.setFixedPositionRSU (1000, 300);
 
 
 

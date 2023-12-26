@@ -13,7 +13,6 @@
 
 #include "ns3/utils.h"
 
-
 namespace ns3 {
 
 class stopWarningClient : public Application
@@ -26,17 +25,19 @@ class stopWarningClient : public Application
     static TypeId GetTypeId (void);
 
     stopWarningClient ();
-
+    
     virtual ~stopWarningClient ();
 
     void receiveDENM(denData denm, Address from);
     // void receiveCAM (CAM_t *cam, Address from);
     void receiveCAM (asn1cpp::Seq<CAM> cam, Address from);
+
     void StopApplicationNow ();
+    
 
   protected:
     virtual void DoDispose (void);
-
+  
   private:
 
     DENBasicService m_denService; //!< DEN Basic Service object
