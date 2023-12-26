@@ -37,7 +37,8 @@
 
 #include "sumo-TraCIAPI.h"
 #include "sumo-TraCIDefs.h"
-
+#include "ns3/utils.h"
+#include "ns3/plexe_utils.h"
 #include "ns3/vehicle-visualizer.h"
 
 #define STARTUP_FCN std::function<Ptr<Node>(std::string)>
@@ -64,6 +65,7 @@ public:
   std::string GetVehicleId(Ptr<Node> node);
 
   uint32_t GetVehicleMapSize(); // size of vehicle map
+  Plexe plexe;
 
 private:
   // perform sumo simulation for a certain time step
@@ -94,7 +96,8 @@ private:
   // port handling functionality for multiple parallel simulations
   static bool PortFreeCheck (uint32_t portNum);
   static uint32_t GetFreePort (uint32_t portNum=10000);
-
+  
+  int platoonID = 0;
   // simulation specific data members
   std::string m_sumoAddCmdOpt;
   std::string m_sumoCommand;

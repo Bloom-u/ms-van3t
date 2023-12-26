@@ -973,5 +973,6 @@
 // presence of view
 #define VAR_HAS_VIEW 0xa7
 
-
+// @brief The vehicle is blocked being overlapping
+#define LCA_OVERLAPPING 1 << 13
 #endif

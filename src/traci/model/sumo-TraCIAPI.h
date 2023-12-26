@@ -741,9 +741,9 @@ public:
         void add(const std::string& vehicleID,
                  const std::string& routeID,
                  const std::string& typeID = "DEFAULT_VEHTYPE",
-                 std::string depart = "-1",
+                 std::string depart = "now",
                  const std::string& departLane = "first",
-                 const std::string& departPos = "base",
+                 const std::string& departPos = "200",
                  const std::string& departSpeed = "0",
                  const std::string& arrivalLane = "current",
                  const std::string& arrivalPos = "max",
@@ -767,6 +767,11 @@ public:
         void openGap(const std::string& vehicleID, double newTau, double duration, double changeRate, double maxDecel) const;
         void setSpeed(const std::string& vehicleID, double speed) const;
         void setSpeedMode(const std::string& vehicleID, int mode) const;
+        /*
+          Add TraCIAPI Method bu Yang:
+            1. setLaneChangeMode
+        */
+        void setLaneChangeMode(const std::string& vehicleID, int mode) const;
         void setStop(const std::string vehicleID, const std::string edgeID, const double endPos = 1.,
                      const int laneIndex = 0, const double duration = std::numeric_limits<double>::max(),
                      const int flags = 0, const double startPos = std::numeric_limits<int>::min(),

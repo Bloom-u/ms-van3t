@@ -119,7 +119,7 @@ namespace ns3
     return tid;
   }
 
-  TraciClient::TraciClient(void)
+  TraciClient::TraciClient(void) : plexe(*this)
   {
     NS_LOG_FUNCTION(this);
 
@@ -269,9 +269,9 @@ namespace ns3
       }
 
     // wait 1 sec (=1e6 microsec) until sumo opens socket for traci connection
-    std::cout << "Sumo: wait for socket: " << m_sumoWaitForSocket.GetSeconds() << "s" << std::endl;
-    usleep(m_sumoWaitForSocket.GetMicroSeconds());
-
+    std::cout << "Sumo: wait for socket: " << 2*m_sumoWaitForSocket.GetSeconds() << "s" << std::endl;
+    usleep(2*m_sumoWaitForSocket.GetMicroSeconds());
+    // usleep(m_sumoWaitForSocket.GetMicroSeconds());
     // connect to sumo via traci
     try
       {
@@ -324,28 +324,58 @@ namespace ns3
   {
     NS_LOG_FUNCTION(this);
 
-    try
-      {
+    // try
+    //   {
         // get current simulation time
-        auto nextTime = Simulator::Now().GetSeconds() + m_synchInterval.GetSeconds() + m_startTime.GetSeconds();
+      auto nextTime = Simulator::Now().GetSeconds() + m_synchInterval.GetSeconds() + m_startTime.GetSeconds();
+      
+      std::cout << "Current time:" << nextTime << std::endl;
+      plexe.step();
+      int N_VEHICLES = 3;
 
-        // command sumo to simulate next time step
-        this->TraCIAPI::simulationStep(nextTime);
-
-        // include a ns3 node for every new sumo vehicle and exclude arrived vehicles
-        SynchroniseVehicleNodeMap();
-
-        // ask sumo for new vehicle positions and update node positions
-        UpdatePositions();
-
-        // schedule next event to simulate next time step in sumo
-        Simulator::Schedule(m_synchInterval, &TraciClient::SumoSimulationStep, this);
+      if ((static_cast<int>(nextTime*100) % 1000 == 0) && (static_cast<int>(nextTime*100) > 100)){
+          add_vehicles(plexe, platoonID, N_VEHICLES, 100);
+          platoonID += 1;
       }
-    catch (std::exception& e)
+
+      for (int i = 0; i < platoonID; i++)
       {
-        terminateVehicleVisualizer();
-        NS_FATAL_ERROR("Sumo was closed unexpectedly during simulation: " << e.what());
+        std::string vid_0 = "platoon." + std::to_string(i) + "." + "0";
+        std::string vid_1 = "platoon." + std::to_string(i) + "." + "1";
+        std::string vid_2 = "platoon." + std::to_string(i) + "." + "2";
+
+        std::vector<std::string> vehiclesIDList = plexe.vehicle.getIDList();
+        auto it = std::find(vehiclesIDList.begin(), vehiclesIDList.end(), vid_0);
+        if (it != vehiclesIDList.end()){
+          double X_veh_bd = plexe.vehicle.getPosition("Un1").x;
+          double X_vid_0 = plexe.vehicle.getPosition(vid_0).x;
+          if ((X_veh_bd - X_vid_0 < 200) && (X_veh_bd - X_vid_0 > 0) && (plexe.vehicle.getSpeed("Un1") == 0)){
+            plexe.vehicle.changeLane(vid_0, 1, 0);
+            plexe.vehicle.changeLane(vid_1, 1, 0);
+            plexe.vehicle.changeLane(vid_2, 1, 0);
+          }
+        }
+        
       }
+      
+
+      // command sumo to simulate next time step
+      this->TraCIAPI::simulationStep(nextTime);
+  
+      // include a ns3 node for every new sumo vehicle and exclude arrived vehicles
+      SynchroniseVehicleNodeMap();
+
+      // ask sumo for new vehicle positions and update node positions
+      UpdatePositions();
+
+      // schedule next event to simulate next time step in sumo
+      Simulator::Schedule(m_synchInterval, &TraciClient::SumoSimulationStep, this);
+    //   }
+    // catch (std::exception& e)
+    //   {
+    //     terminateVehicleVisualizer();
+    //     NS_FATAL_ERROR("Sumo was closed unexpectedly during simulation: " << e.what());
+    //   }
   }
 
   void

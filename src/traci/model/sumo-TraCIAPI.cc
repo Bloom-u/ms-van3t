@@ -2873,6 +2873,16 @@ TraCIAPI::VehicleScope::setSpeedMode(const std::string& vehicleID, int mode) con
 }
 
 void
+TraCIAPI::VehicleScope::setLaneChangeMode(const std::string& vehicleID, int mode) const {
+    tcpip::Storage content;
+    content.writeByte(TYPE_INTEGER);
+    content.writeInt(mode);
+    myParent.send_commandSetValue(CMD_SET_VEHICLE_VARIABLE, VAR_LANECHANGE_MODE, vehicleID, content);
+    tcpip::Storage inMsg;
+    myParent.check_resultState(inMsg, CMD_SET_VEHICLE_VARIABLE);
+}
+
+void
 TraCIAPI::VehicleScope::setStop(const std::string vehicleID, const std::string edgeID, const double endPos, const int laneIndex,
                                 const double duration, const int flags, const double startPos, const double until) const {
     tcpip::Storage content;
