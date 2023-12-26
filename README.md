@@ -44,6 +44,8 @@ This script will download the proper version of ns-3-dev and install this framew
 * Configure `ns3` to build the framework with `<ns3-folder>./ns3 configure --build-profile=optimized --enable-examples --enable-tests --disable-python (add here what you want to enable)"` - The usage of the optimized profile allows to speed up the simulation time. This command should be launched from inside the `ns-3-dev` folder.
 
 * **Important**: If you are compiling ms-van3t on Ubuntu 22.04 LTS or later, you need to specify, when calling `./ns3 configure`, also the `--disable-werror` flag
+(./ns3 configure --build-profile=optimized --disable-werror)
+
 
 * Build ns3:
 `./ns3 build`
